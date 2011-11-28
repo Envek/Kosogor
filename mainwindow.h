@@ -17,6 +17,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    int dbConnect ();
 };
 
 #endif // MAINWINDOW_H
