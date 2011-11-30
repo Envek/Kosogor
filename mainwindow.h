@@ -1,6 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QtSql>
+
 #include <QMainWindow>
 
 namespace Ui {
@@ -17,7 +19,12 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    int dbConnect ();
+    QSqlDatabase dbConnect ();
+    QSqlTableModel *checksumModel, *paymentModel;
+
+protected slots:
+    void filter_payments_by_checksum(QModelIndex index);
+
 };
 
 #endif // MAINWINDOW_H
