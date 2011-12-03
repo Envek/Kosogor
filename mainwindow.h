@@ -23,11 +23,14 @@ public:
 private:
     Ui::MainWindow *ui;
     QSqlDatabase dbConnect ();
-    QSqlTableModel *checksumModel, *paymentModel;
+    QSqlTableModel *checksumModel, *paymentModel, *clientModel, *accountModel;
 
 protected slots:
     void filter_payments_by_checksum(QModelIndex index);
     void on_importButton_clicked();
+    void on_resetPaymentsFilterButton_clicked();
+    void on_processButton_clicked();
+    void on_exportButton_clicked();
 
 };
 

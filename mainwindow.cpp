@@ -10,14 +10,28 @@ MainWindow::MainWindow(QWidget *parent) :
 
     checksumModel = new QSqlTableModel(this,baseConnector);
     checksumModel->setTable("checksums");
-    checksumModel->setEditStrategy(QSqlTableModel::OnFieldChange);//здесь лучше в ман залезть
+    checksumModel->setEditStrategy(QSqlTableModel::OnRowChange);//здесь лучше в ман залезть
     checksumModel->select();
     ui->checksumView->setModel(checksumModel);
+    ui->checksumView->setSelectionBehavior(QAbstractItemView::SelectRows);
     paymentModel = new QSqlTableModel(this,baseConnector);
     paymentModel->setTable("payments");
-    paymentModel->setEditStrategy(QSqlTableModel::OnFieldChange);//здесь лучше в ман залезть
+    paymentModel->setEditStrategy(QSqlTableModel::OnRowChange);//здесь лучше в ман залезть
     paymentModel->select();
     ui->paymentView->setModel(paymentModel);
+    ui->paymentView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    clientModel = new QSqlTableModel(this,baseConnector);
+    clientModel->setTable("clients");
+    clientModel->setEditStrategy(QSqlTableModel::OnRowChange);//здесь лучше в ман залезть
+    clientModel->select();
+    ui->clientView->setModel(clientModel);
+    ui->clientView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    accountModel = new QSqlTableModel(this,baseConnector);
+    accountModel->setTable("accounts");
+    accountModel->setEditStrategy(QSqlTableModel::OnRowChange);//здесь лучше в ман залезть
+    accountModel->select();
+    ui->accountView->setModel(accountModel);
+    ui->accountView->setSelectionBehavior(QAbstractItemView::SelectRows);
 }
 
 MainWindow::~MainWindow()
@@ -44,6 +58,9 @@ void MainWindow::filter_payments_by_checksum(QModelIndex index) {
         QString filename = checksumModel->record(index.row()).value("filename").toString();
         paymentModel->setFilter(QString("`filename` = '%1'").arg(filename));
         paymentModel->select();
+        ui->processButton->setEnabled(true);
+        ui->exportButton->setEnabled(true);
+        ui->resetPaymentsFilterButton->setEnabled(true);
     }
     qDebug()<<"Filter payments by checksums "<<paymentModel->filter();
 }
@@ -213,4 +230,24 @@ void MainWindow::on_importButton_clicked() {
         checksumModel->select();
         paymentModel->select();
     }
+}
+
+void MainWindow::on_resetPaymentsFilterButton_clicked()
+{
+    ui->processButton->setEnabled(false);
+    ui->exportButton->setEnabled(false);
+    ui->resetPaymentsFilterButton->setEnabled(false);
+    paymentModel->setFilter(QString());
+    ui->checksumView->clearSelection();
+    ui->checksumView->clearSelection();
+}
+
+void MainWindow::on_processButton_clicked()
+{
+
+}
+
+void MainWindow::on_exportButton_clicked()
+{
+
 }
