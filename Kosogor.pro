@@ -6,7 +6,7 @@
 
 QT       += core gui sql
 
-TARGET = Bugor
+TARGET = Kosogor
 TEMPLATE = app
 
 

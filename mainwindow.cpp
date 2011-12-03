@@ -41,7 +41,7 @@ MainWindow::~MainWindow()
 
 QSqlDatabase MainWindow::dbConnect () {
     QSqlDatabase baseConnector = QSqlDatabase::addDatabase("QSQLITE");
-    baseConnector.setDatabaseName("bugor");
+    baseConnector.setDatabaseName("kosogor");
     if(baseConnector.open()) {
         qDebug()<<"Connected to database";
     } else {
