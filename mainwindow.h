@@ -1,7 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QtCore>
+#include <QtGui>
 #include <QtSql>
+#include <QDebug>
 
 #include <QMainWindow>
 
@@ -24,6 +27,7 @@ private:
 
 protected slots:
     void filter_payments_by_checksum(QModelIndex index);
+    void on_importButton_clicked();
 
 };
 
