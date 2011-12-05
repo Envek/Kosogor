@@ -337,9 +337,37 @@ void MainWindow::on_processButton_clicked() {
     }
 }
 
-void MainWindow::on_exportButton_clicked()
-{
-
+void MainWindow::on_exportButton_clicked() {
+    if (currentChecksum.isValid()) {
+        QString filename = checksumModel->record(currentChecksum.row()).value("filename").toString();
+        QFileDialog chksum(this, QString("Выберите место сохранения файлов"));
+        chksum.setFileMode(QFileDialog::Directory);
+        if (chksum.exec())
+            if (!chksum.selectedFiles().isEmpty()) {
+                QDir savePlace (chksum.selectedFiles().first());
+                QString dFilename = filename.replace(".q0", ".d0", Qt::CaseSensitive);
+                dFilename = dFilename.replace(".Q0", ".D0", Qt::CaseSensitive);
+                QString eFilename = filename.replace(".q0", ".e0", Qt::CaseSensitive);
+                eFilename = eFilename.replace(".Q0", ".E0", Qt::CaseSensitive);
+                QString fFilename = filename.replace(".q0", ".f0", Qt::CaseSensitive);
+                fFilename = fFilename.replace(".Q0", ".F0", Qt::CaseSensitive);
+                QString nFilename = filename.replace(".q0", ".n0", Qt::CaseSensitive);
+                nFilename = nFilename.replace(".Q0", ".N0", Qt::CaseSensitive);
+                QString rFilename = filename.replace(".q0", ".r0", Qt::CaseSensitive);
+                rFilename = rFilename.replace(".Q0", ".R0", Qt::CaseSensitive);
+                QFile dFile(savePlace.absoluteFilePath(dFilename));
+                QFile eFile(savePlace.absoluteFilePath(eFilename));
+                QFile fFile(savePlace.absoluteFilePath(fFilename));
+                QFile nFile(savePlace.absoluteFilePath(nFilename));
+                QFile rFile(savePlace.absoluteFilePath(rFilename));
+                if (dFile.open(QFile::WriteOnly | QFile::Text)) dFile.close();
+                if (eFile.open(QFile::WriteOnly | QFile::Text)) eFile.close();
+                if (fFile.open(QFile::WriteOnly | QFile::Text)) fFile.close();
+                if (nFile.open(QFile::WriteOnly | QFile::Text)) nFile.close();
+                if (rFile.open(QFile::WriteOnly | QFile::Text)) rFile.close();
+                QMessageBox::information(this, "Вывод файлов сделан", QString("Файлы результатов сохранены в директорию %1").arg(savePlace.absolutePath()));
+            }
+    }
 }
 
 void MainWindow::on_syncClientsButton_clicked()
