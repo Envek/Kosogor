@@ -310,7 +310,7 @@ void MainWindow::on_processButton_clicked() {
                                     } else {
                                         // Вот теперь можно отметить как оплаченное
                                         QSqlQuery approve;
-                                        approve.prepare("UPDATE `payments` SET `paid` = 1 WHERE `filename` = :filename AND `record_number` = :record");
+                                        approve.prepare("UPDATE `payments` SET `paid` = 1 WHERE `filename` = :filename AND `record_number` LIKE :record");
                                         approve.bindValue(":filename", notProcessed.value(0).toString());
                                         approve.bindValue(":record", notProcessed.value(1).toString());
                                         if (approve.exec()) {
@@ -330,6 +330,7 @@ void MainWindow::on_processButton_clicked() {
                         if (reject.exec())
                             qDebug() << reject.lastQuery();
                     }
+                    paymentModel->select();
                 }
             }
         }
