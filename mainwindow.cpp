@@ -1,6 +1,34 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+void setPaymentModelHeaders (QSqlTableModel *mdl) {
+    mdl->setHeaderData(0, Qt::Horizontal, QString("Файл"));
+    mdl->setHeaderData(1, Qt::Horizontal, QString("Запись"));
+    mdl->setHeaderData(2, Qt::Horizontal, QString("Банк"));
+    mdl->setHeaderData(3, Qt::Horizontal, QString("Филиал"));
+    mdl->setHeaderData(4, Qt::Horizontal, QString("Страница"));
+    mdl->setHeaderData(5, Qt::Horizontal, QString("Код с/б филиала"));
+    mdl->setHeaderData(6, Qt::Horizontal, QString("Код с/б"));
+    mdl->setHeaderData(7, Qt::Horizontal, QString("Исходный код"));
+    mdl->setHeaderData(8, Qt::Horizontal, QString("Код МУСЗН"));
+    mdl->setHeaderData(9, Qt::Horizontal, QString("Фамилия"));
+    mdl->setHeaderData(10, Qt::Horizontal, QString("Имя"));
+    mdl->setHeaderData(11, Qt::Horizontal, QString("Отчество"));
+    mdl->setHeaderData(12, Qt::Horizontal, QString("Номер счёта"));
+    mdl->setHeaderData(13, Qt::Horizontal, QString("Пенсия/пособие"));
+    mdl->setHeaderData(14, Qt::Horizontal, QString("Доплата мэра"));
+    mdl->setHeaderData(15, Qt::Horizontal, QString("Прочие доплаты"));
+    mdl->setHeaderData(16, Qt::Horizontal, QString("Доплата участникам ВОВ"));
+    mdl->setHeaderData(17, Qt::Horizontal, QString("Доплата на содерж. детей"));
+    mdl->setHeaderData(18, Qt::Horizontal, QString("Доплата за телефон"));
+    mdl->setHeaderData(19, Qt::Horizontal, QString("Общая сумма"));
+    mdl->setHeaderData(20, Qt::Horizontal, QString("Валюта"));
+    mdl->setHeaderData(21, Qt::Horizontal, QString("Дата создания"));
+    mdl->setHeaderData(22, Qt::Horizontal, QString("Код ошибки"));
+    mdl->setHeaderData(23, Qt::Horizontal, QString("К оплате?"));
+    mdl->setHeaderData(24, Qt::Horizontal, QString("Дата обработки"));
+}
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -12,30 +40,44 @@ MainWindow::MainWindow(QWidget *parent) :
     checksumModel->setTable("checksums");
     checksumModel->setEditStrategy(QSqlTableModel::OnRowChange);//здесь лучше в ман залезть
     checksumModel->select();
+    checksumModel->setHeaderData(0, Qt::Horizontal, QString("Файл"));
+    checksumModel->setHeaderData(1, Qt::Horizontal, QString("Записей"));
+    checksumModel->setHeaderData(2, Qt::Horizontal, QString("Сумма"));
     ui->checksumView->setModel(checksumModel);
     ui->checksumView->setSelectionBehavior(QAbstractItemView::SelectRows);
     paymentModel = new QSqlTableModel(this,baseConnector);
     paymentModel->setTable("payments");
     paymentModel->setEditStrategy(QSqlTableModel::OnRowChange);//здесь лучше в ман залезть
     paymentModel->select();
+    setPaymentModelHeaders(paymentModel);
     ui->paymentView->setModel(paymentModel);
     ui->paymentView->setSelectionBehavior(QAbstractItemView::SelectRows);
     clientModel = new QSqlTableModel(this,baseConnector);
     clientModel->setTable("clients");
     clientModel->setEditStrategy(QSqlTableModel::OnRowChange);//здесь лучше в ман залезть
     clientModel->select();
+    clientModel->setHeaderData(0, Qt::Horizontal, QString("Номер паспорта"));
+    clientModel->setHeaderData(1, Qt::Horizontal, QString("Фамилия"));
+    clientModel->setHeaderData(2, Qt::Horizontal, QString("Имя"));
+    clientModel->setHeaderData(3, Qt::Horizontal, QString("Отчество"));
+    clientModel->setHeaderData(4, Qt::Horizontal, QString("Доп. счёт"));
     ui->clientView->setModel(clientModel);
     ui->clientView->setSelectionBehavior(QAbstractItemView::SelectRows);
     accountModel = new QSqlTableModel(this,baseConnector);
     accountModel->setTable("accounts");
     accountModel->setEditStrategy(QSqlTableModel::OnRowChange);//здесь лучше в ман залезть
     accountModel->select();
+    accountModel->setHeaderData(0, Qt::Horizontal, QString("Номёр счёта"));
+    accountModel->setHeaderData(1, Qt::Horizontal, QString("Номер паспорта"));
+    accountModel->setHeaderData(2, Qt::Horizontal, QString("Закрыт?"));
+    accountModel->setHeaderData(3, Qt::Horizontal, QString("Нарушены условия?"));
     ui->accountView->setModel(accountModel);
     ui->accountView->setSelectionBehavior(QAbstractItemView::SelectRows);
     clientAccountPaymentsModel = new QSqlTableModel(this,baseConnector);
     clientAccountPaymentsModel->setTable("payments");
     clientAccountPaymentsModel->setEditStrategy(QSqlTableModel::OnRowChange);//здесь лучше в ман залезть
     clientAccountPaymentsModel->select();
+    setPaymentModelHeaders(clientAccountPaymentsModel);
     currentChecksum = QModelIndex();
     ui->clientPaymentView->setModel(clientAccountPaymentsModel);
     ui->clientPaymentView->setSelectionBehavior(QAbstractItemView::SelectRows);
