@@ -32,6 +32,13 @@ MainWindow::MainWindow(QWidget *parent) :
     accountModel->select();
     ui->accountView->setModel(accountModel);
     ui->accountView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    clientAccountPaymentsModel = new QSqlTableModel(this,baseConnector);
+    clientAccountPaymentsModel->setTable("payments");
+    clientAccountPaymentsModel->setEditStrategy(QSqlTableModel::OnRowChange);//здесь лучше в ман залезть
+    clientAccountPaymentsModel->select();
+    currentChecksum = QModelIndex();
+    ui->clientPaymentView->setModel(clientAccountPaymentsModel);
+    ui->clientPaymentView->setSelectionBehavior(QAbstractItemView::SelectRows);
 }
 
 MainWindow::~MainWindow()
@@ -55,6 +62,7 @@ QSqlDatabase MainWindow::dbConnect () {
 
 void MainWindow::filter_payments_by_checksum(QModelIndex index) {
     if (index.isValid()) {
+        currentChecksum = index;
         QString filename = checksumModel->record(index.row()).value("filename").toString();
         paymentModel->setFilter(QString("`filename` = '%1'").arg(filename));
         paymentModel->select();
@@ -242,12 +250,130 @@ void MainWindow::on_resetPaymentsFilterButton_clicked()
     ui->checksumView->clearSelection();
 }
 
-void MainWindow::on_processButton_clicked()
-{
-
+void MainWindow::on_processButton_clicked() {
+    if (currentChecksum.isValid()) {
+        qDebug() << "Starting processing of the data…";
+        QString reject_query = "UPDATE `payments` SET `result` = :reject_code, `paid` = 0 WHERE `filename` = :filename AND `record_number` LIKE :record";
+        int paid=0, count = 0;
+        QString filename = checksumModel->record(currentChecksum.row()).value("filename").toString();
+        QSqlQuery notProcessed;
+        notProcessed.prepare("SELECT filename, record_number, account_number, surname, name, patronymic FROM payments WHERE `filename` = :filename");
+        notProcessed.bindValue(":filename", filename);
+        if (notProcessed.exec()) {
+            qDebug() << notProcessed.lastQuery();
+            while (notProcessed.next()) {
+                count++;
+                QString account = notProcessed.value(2).toString();
+                // Находим номер счёта, если такого нет - в расхождения.
+                QSqlQuery aq;
+                aq.prepare("SELECT `passport_number`, `closed`, `abuse` FROM `accounts` WHERE `account_number` = :account");
+                aq.bindValue(":account", account);
+                if (aq.exec()) {
+                    qDebug() << aq.lastQuery();
+                    if (aq.next()) {
+                        if (aq.value(2).toBool()) {
+                            QSqlQuery reject;
+                            reject.prepare(reject_query);
+                            reject.bindValue(":reject_code", 5);
+                            reject.bindValue(":filename", filename);
+                            reject.bindValue(":record", notProcessed.value(1).toString());
+                            if (reject.exec())
+                                qDebug() << reject.lastQuery();
+                        } else if (aq.value(3).toBool()) {
+                            QSqlQuery reject;
+                            reject.prepare(reject_query);
+                            reject.bindValue(":reject_code", 6);
+                            reject.bindValue(":filename", filename);
+                            reject.bindValue(":record", notProcessed.value(1).toString());
+                            if (reject.exec())
+                                qDebug() << reject.lastQuery();
+                        } else {
+                            // Сверяем ФИО, если не совпадают - в расхождения
+                            QSqlQuery cl;
+                            cl.prepare("SELECT surname, name, patronymic FROM clients WHERE passport_number = :passport");
+                            cl.bindValue(":passport", aq.value(0).toString());
+                            if (cl.exec()) {
+                                qDebug() << cl.lastQuery();
+                                if (cl.next()) {
+                                    if (!(
+                                            cl.value(0).toString().trimmed().toLower() == notProcessed.value(3).toString().trimmed().toLower() &&
+                                            cl.value(1).toString().trimmed().toLower() == notProcessed.value(4).toString().trimmed().toLower() &&
+                                            cl.value(2).toString().trimmed().toLower() == notProcessed.value(5).toString().trimmed().toLower()
+                                            )) {
+                                        QSqlQuery reject;
+                                        reject.prepare(reject_query);
+                                        reject.bindValue(":reject_code", 3);
+                                        reject.bindValue(":filename", filename);
+                                        reject.bindValue(":record", notProcessed.value(1).toString());
+                                        if (reject.exec())
+                                            qDebug()<<reject.lastQuery();
+                                    } else {
+                                        // Вот теперь можно отметить как оплаченное
+                                        QSqlQuery approve;
+                                        approve.prepare("UPDATE `payments` SET `paid` = 1 WHERE `filename` = :filename AND `record_number` = :record");
+                                        approve.bindValue(":filename", notProcessed.value(0).toString());
+                                        approve.bindValue(":record", notProcessed.value(1).toString());
+                                        if (approve.exec()) {
+                                            qDebug()<<approve.lastQuery();
+                                            paid++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        QSqlQuery reject;
+                        reject.prepare(reject_query);
+                        reject.bindValue(":reject_code", 4);
+                        reject.bindValue(":filename", filename);
+                        reject.bindValue(":record", notProcessed.value(1));
+                        if (reject.exec())
+                            qDebug() << reject.lastQuery();
+                    }
+                }
+            }
+        }
+        QMessageBox::information(this, "Обработка завершена", QString("Обработано записей: %1\nК оплате: %2\nРасхождений: %3").arg(count).arg(paid).arg(count-paid));
+    }
 }
 
 void MainWindow::on_exportButton_clicked()
 {
 
+}
+
+void MainWindow::on_syncClientsButton_clicked()
+{
+
+}
+
+void MainWindow::on_resetFilters_clicked()
+{
+    ui->resetFilters->setEnabled(false);
+    clientModel->setFilter(QString());
+    accountModel->setFilter(QString());
+    clientAccountPaymentsModel->setFilter(QString());
+    ui->clientView->clearSelection();
+    ui->accountView->clearSelection();
+    ui->clientPaymentView->clearSelection();
+}
+
+void MainWindow::filter_payments_by_account(QModelIndex index) {
+    if (index.isValid()) {
+        QString account = accountModel->record(index.row()).value("account_number").toString();
+        clientAccountPaymentsModel->setFilter(QString("`account_number` LIKE '%1'").arg(account));
+        clientAccountPaymentsModel->select();
+        ui->resetFilters->setEnabled(true);
+    }
+    qDebug()<<"Filter payments by account "<<paymentModel->filter();
+}
+
+void MainWindow::filter_accounts_by_client(QModelIndex index) {
+    if (index.isValid()) {
+        QString account = clientModel->record(index.row()).value("passport_number").toString();
+        accountModel->setFilter(QString("`passport_number` = '%1'").arg(account));
+        accountModel->select();
+        ui->resetFilters->setEnabled(true);
+    }
+    qDebug()<<"Filter accounts by client "<<paymentModel->filter();
 }

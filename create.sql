@@ -18,7 +18,7 @@ CREATE TABLE `payments` (
   `surname` VARCHAR(30) NOT NULL,
   `name` VARCHAR(30) NOT NULL,
   `patronymic` VARCHAR(30) NOT NULL,
-  `account_number` BIGINT NOT NULL,
+  `account_number` VARCHAR(30) NOT NULL,
   `pansion` BIGINT NOT NULL DEFAULT 0,
   `mayor_surcharge` BIGINT DEFAULT 0,
   `additional_surcharge` BIGINT DEFAULT 0,
@@ -28,7 +28,7 @@ CREATE TABLE `payments` (
   `total` BIGINT NOT NULL DEFAULT 0,
   `currency_code` CHAR(3) NOT NULL DEFAULT '810',
   `creation_date` DATE NOT NULL,
-  `processed` BOOLEAN NOT NULL DEFAULT 0,
+  `result` INTEGER NOT NULL DEFAULT 0,
   `paid` BOOLEAN NOT NULL DEFAULT 0,
   `processed_date` DATE,
   PRIMARY KEY (`filename`, `record_number`),
@@ -37,7 +37,7 @@ CREATE TABLE `payments` (
 );
 
 CREATE TABLE `accounts` (
-  `account_number` BIGINT NOT NULL,
+  `account_number` VARCHAR(30) NOT NULL,
   `passport_number` VARCHAR(10) NOT NULL,
   `closed` SMALLINT NOT NULL DEFAULT 0,
   `abuse` SMALLINT NOT NULL DEFAULT 0,
