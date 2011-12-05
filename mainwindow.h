@@ -36,6 +36,8 @@ protected slots:
     void on_exportButton_clicked();
     void on_syncClientsButton_clicked();
     void on_resetFilters_clicked();
+    void fakeTimerFire();
+
 };
 
 #endif // MAINWINDOW_H

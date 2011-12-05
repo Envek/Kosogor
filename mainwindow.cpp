@@ -370,9 +370,18 @@ void MainWindow::on_exportButton_clicked() {
     }
 }
 
-void MainWindow::on_syncClientsButton_clicked()
-{
+void MainWindow::on_syncClientsButton_clicked() {
+    QTimer *a = new QTimer(this);
+    a->setInterval(5000);
+    a->setSingleShot(true);
+    a->start();
+    connect(a, SIGNAL(timeout()), this, SLOT(fakeTimerFire()));
+    ui->syncClientsButton->setEnabled(false);
+}
 
+void MainWindow::fakeTimerFire() {
+    QMessageBox::warning(this, "Синхронизация не удалась", QString("Не удаётся подсоединиться к мастер-серверу."));
+    ui->syncClientsButton->setEnabled(true);
 }
 
 void MainWindow::on_resetFilters_clicked()
