@@ -136,7 +136,10 @@ void MainWindow::on_importButton_clicked() {
             if (chksumFile->open(QFile::ReadOnly | QFile::Text))
                 canContinue = true;
         }
-    if (canContinue) {
+    if (!canContinue) {
+        qDebug()<<"No file selected or can't open the file.";
+        return;
+    } else {
         bool conversionSuccess;
         QFileInfo chksumFileInfo(*chksumFile);
         checksumFilename = chksumFileInfo.fileName();
@@ -146,6 +149,12 @@ void MainWindow::on_importButton_clicked() {
         if (!conversionSuccess)
             canContinue = false;
     }
+    // Очеловечивание имени
+    QRegExp rx("(\\w{4})(\\d{2})(\\d{2})");
+    rx.indexIn(checksumFilename);
+    QStringList hl = rx.capturedTexts();
+    QString humanized_filename = QString("%1 от %2.%3").arg(hl[1],hl[2],hl[3]);
+    humanized_filename.remove(QChar('_'));
     if (canContinue) {
         // Внесение в базу
         QSqlQuery query;
@@ -154,7 +163,7 @@ void MainWindow::on_importButton_clicked() {
                       ") VALUES (:filename, :record_count, :total"
                       ")"))
             qDebug()<<"Query preparation failed!";
-        query.bindValue(":filename", checksumFilename);
+        query.bindValue(":filename", humanized_filename);
         query.bindValue(":record_count", qint32(paymentsCount));
         query.bindValue(":total", paymentsTotal);
         query.exec();
@@ -207,6 +216,13 @@ void MainWindow::on_importButton_clicked() {
             QString surname_decoded = codec->toUnicode(surname);
             QString name_decoded = codec->toUnicode(name);
             QString patronymic_decoded = codec->toUnicode(patronymic);
+            // Капитализация ФИО
+            surname_decoded = surname_decoded.toLower();
+            surname_decoded[0] = surname_decoded[0].toUpper();
+            name_decoded = name_decoded.toLower();
+            name_decoded[0] = name_decoded[0].toUpper();
+            patronymic_decoded = patronymic_decoded.toLower();
+            patronymic_decoded[0] = patronymic_decoded[0].toUpper();
             // Проверки
             if (total != pansion+mayor+additional+uvov+children+phone) {
                 QMessageBox::critical(this, "Ошибка в платежах", "Общая сумма платежа не сходится со слагаемыми.");
@@ -227,10 +243,10 @@ void MainWindow::on_importButton_clicked() {
                           "`filename`, `record_number`, `bank_short`, `branch_number`, `sheet_number`, `sberbank_branch_code`, `sberbank_code`, `source_code`, `muszi_code`, `surname`, `name`, `patronymic`, `account_number`, `pansion`, `mayor_surcharge`, `additional_surcharge`, `uvov_surcharge`, `children_surcharge`, `phone_surcharge`, `total`, `currency_code`, `creation_date`"
                           ") VALUES (:filename, :record_number, :bank_short, :branch_number, :sheet_number, :sberbank_branch_code, :sberbank_code, :source_code, :muszi_code, :surname, :name, :patronymic, :account_number, :pansion, :mayor_surcharge, :additional_surcharge, :uvov_surcharge, :children_surcharge, :phone_surcharge, :total, :currency_code, :creation_date"
                           ")");
-            query.bindValue(":filename", checksumFilename);
+            query.bindValue(":filename", humanized_filename);
             query.bindValue(":record_number", number);
-            query.bindValue(":bank_short", bank);
-            query.bindValue(":branch_number", filial);
+            query.bindValue(":bank_short", QString(bank).remove(QChar('_')));
+            query.bindValue(":branch_number", QString(filial).remove(QChar('.')));
             query.bindValue(":sheet_number", sheet);
             query.bindValue(":sberbank_branch_code", sfilial);
             query.bindValue(":sberbank_code", sbank);
@@ -266,11 +282,11 @@ void MainWindow::on_importButton_clicked() {
             qDebug()<<"Failed. Removing all inserted records…";
             QSqlQuery query;
             query.prepare("DELETE FROM payments WHERE filename = :filename");
-            query.bindValue(":filename", checksumFilename);
+            query.bindValue(":filename", humanized_filename);
             query.exec();
             qDebug()<<query.lastQuery();
             query.prepare("DELETE FROM checksums WHERE filename = :filename");
-            query.bindValue(":filename", checksumFilename);
+            query.bindValue(":filename", humanized_filename);
             query.exec();
             qDebug()<<query.lastQuery();
         } else {
