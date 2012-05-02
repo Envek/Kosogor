@@ -11,11 +11,14 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    authdialog.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    authdialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    authdialog.ui
 
 OTHER_FILES += \
     create.sql

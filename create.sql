@@ -55,3 +55,10 @@ CREATE TABLE `clients` (
 );
 
 CREATE INDEX `fullname` ON `clients` (`surname`, `name`, `patronymic`);
+
+CREATE TABLE `users` (
+  `login` VARCHAR(30) NOT NULL COLLATE NOCASE,
+  `password` VARCHAR(30) NOT NULL,
+  `admin` BOOLEAN NOT NULL DEFAULT false,
+  PRIMARY KEY (`login`)
+);

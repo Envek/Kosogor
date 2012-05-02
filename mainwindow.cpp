@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "authdialog.h"
 
 void setPaymentModelHeaders (QSqlTableModel *mdl) {
     mdl->setHeaderData(0, Qt::Horizontal, QString("Файл"));
@@ -81,6 +82,10 @@ MainWindow::MainWindow(QWidget *parent) :
     currentChecksum = QModelIndex();
     ui->clientPaymentView->setModel(clientAccountPaymentsModel);
     ui->clientPaymentView->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+    AuthDialog auth_dialog(this, baseConnector);
+    this->authorized = auth_dialog.exec();
+    this->admin = auth_dialog.admin;
 }
 
 MainWindow::~MainWindow()
