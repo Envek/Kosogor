@@ -26,6 +26,7 @@ private:
     Ui::MainWindow *ui;
     QSqlDatabase dbConnect ();
     QSqlTableModel *checksumModel, *paymentModel, *clientModel, *accountModel, *clientAccountPaymentsModel;
+    QSqlTableModel *userModel;
     QModelIndex currentChecksum;
 
 protected slots:
@@ -39,6 +40,11 @@ protected slots:
     void on_syncClientsButton_clicked();
     void on_resetFilters_clicked();
     void fakeTimerFire();
+    void on_addUserButton_clicked();
+    void on_deleteUserButton_clicked();
+    void user_selected(QModelIndex index);
+
+private slots:
 
 };
 

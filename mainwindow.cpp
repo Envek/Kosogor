@@ -37,6 +37,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     QSqlDatabase baseConnector = dbConnect();
 
+    // Первым делом — авторизация
+    AuthDialog auth_dialog(this, baseConnector);
+    this->authorized = auth_dialog.exec();
+    this->admin = auth_dialog.admin;
+
+    // Непосредственная инициализация главного окна
     checksumModel = new QSqlTableModel(this,baseConnector);
     checksumModel->setTable("checksums");
     checksumModel->setEditStrategy(QSqlTableModel::OnRowChange);//здесь лучше в ман залезть
@@ -83,9 +89,26 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->clientPaymentView->setModel(clientAccountPaymentsModel);
     ui->clientPaymentView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-    AuthDialog auth_dialog(this, baseConnector);
-    this->authorized = auth_dialog.exec();
-    this->admin = auth_dialog.admin;
+    // Только администратор может управлять пользователями
+    if (admin) {
+        userModel = new QSqlTableModel(this,baseConnector);
+        userModel->setTable("users");
+        userModel->setEditStrategy(QSqlTableModel::OnRowChange);
+        userModel->select();
+        userModel->setHeaderData(0, Qt::Horizontal, QString("Логин"));
+        userModel->setHeaderData(1, Qt::Horizontal, QString("Пароль"));
+        userModel->setHeaderData(2, Qt::Horizontal, QString("Администратор?"));
+        ui->userView->setModel(userModel);
+        ui->userView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    } else {
+        ui->tabWidget->removeTab(ui->tabWidget->indexOf(ui->usersTab));
+        // Простым смертным базу редактировать нельзя!
+        ui->checksumView->setEditTriggers(QTableView::NoEditTriggers);
+        ui->paymentView->setEditTriggers(QTableView::NoEditTriggers);
+        ui->clientView->setEditTriggers(QTableView::NoEditTriggers);
+        ui->accountView->setEditTriggers(QTableView::NoEditTriggers);
+        ui->clientPaymentView->setEditTriggers(QTableView::NoEditTriggers);
+    }
 }
 
 MainWindow::~MainWindow()
@@ -477,4 +500,45 @@ void MainWindow::filter_accounts_by_client(QModelIndex index) {
         ui->resetFilters->setEnabled(true);
     }
     qDebug()<<"Filter accounts by client "<<paymentModel->filter();
+}
+
+void MainWindow::on_addUserButton_clicked() {
+    bool ok = false;
+    QString text = QInputDialog::getText(this, "Новый пользователь",
+                                         "Введите логин (имя входа) нового пользователя",
+                                         QLineEdit::Normal, "", &ok);
+    if (ok && !text.isEmpty()) {
+        QSqlQuery query;
+        query.prepare("INSERT INTO users (`login`, `password`, `admin`) VALUES (:login, '', 0)");
+        query.bindValue(":login", text);
+        query.exec();
+        qDebug()<<query.lastQuery();
+    }
+    userModel->select();
+}
+
+void MainWindow::on_deleteUserButton_clicked() {
+    QModelIndex index = ui->userView->currentIndex();
+    if (index.isValid()) {
+        QString login = userModel->record(index.row()).value("login").toString();
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, tr("Удаление пользователя"),
+                                        tr("Вы действительно хотите удалить пользователя «%1»?").arg(login),
+                                        QMessageBox::Yes | QMessageBox::Cancel);
+        if (reply == QMessageBox::Yes) {
+            QSqlQuery query;
+            query.prepare("DELETE FROM users WHERE `login` = :login");
+            query.bindValue(":login", login);
+            query.exec();
+            qDebug()<<query.lastQuery();
+            ui->deleteUserButton->setEnabled(false);
+        }
+    }
+    userModel->select();
+}
+
+void MainWindow::user_selected(QModelIndex index) {
+    if (index.isValid()) {
+        ui->deleteUserButton->setEnabled(true);
+    }
 }

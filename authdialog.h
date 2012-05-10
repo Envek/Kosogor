@@ -19,7 +19,6 @@ public:
     
 private:
     Ui::AuthDialog *ui;
-    QSqlTableModel *userModel;
     void accept();
 
 };

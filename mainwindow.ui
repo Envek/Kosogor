@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>499</width>
-    <height>378</height>
+    <width>741</width>
+    <height>468</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -135,6 +135,33 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="usersTab">
+       <attribute name="title">
+        <string>Пользователи</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0" colspan="2">
+         <widget class="QTableView" name="userView"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="addUserButton">
+          <property name="text">
+           <string>Новый пользователь</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="deleteUserButton">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Удалить пользователя</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -192,10 +219,27 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>userView</sender>
+   <signal>clicked(QModelIndex)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>user_selected(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>130</x>
+     <y>100</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>314</x>
+     <y>385</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>filter_payments_by_checksum(QModelIndex)</slot>
   <slot>filter_accounts_by_client(QModelIndex)</slot>
   <slot>filter_payments_by_account(QModelIndex)</slot>
+  <slot>user_selected(QModelIndex)</slot>
  </slots>
 </ui>

@@ -6,14 +6,6 @@ AuthDialog::AuthDialog(QWidget *parent, QSqlDatabase baseConnector) :
     ui(new Ui::AuthDialog)
 {
     ui->setupUi(this);
-    userModel = new QSqlTableModel(this,baseConnector);
-    userModel->setTable("users");
-    userModel->setEditStrategy(QSqlTableModel::OnRowChange);
-    userModel->select();
-    userModel->setHeaderData(0, Qt::Horizontal, QString("Логин"));
-    userModel->setHeaderData(1, Qt::Horizontal, QString("Пароль"));
-    userModel->setHeaderData(2, Qt::Horizontal, QString("Администратор?"));
-
     ui->errorLabel->hide();
 }
 
